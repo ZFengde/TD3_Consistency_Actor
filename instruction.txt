@@ -1,0 +1,6 @@
+TD3 modified with consistency critic
+Sample take many steps, but when computing loss, only one step
+
+consistency_actor
+1. forward: -> sample in consistency_actor -> forward in consistency -> bunch of predict_consistency 
+2. loss : -> predict_consistency
