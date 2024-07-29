@@ -17,7 +17,7 @@ class MLP(nn.Module):
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(t_dim),
             nn.Linear(t_dim, t_dim * 2),
-            nn.Mish(),
+            nn.Tanh(),
             nn.Linear(t_dim * 2, t_dim),
         )
 

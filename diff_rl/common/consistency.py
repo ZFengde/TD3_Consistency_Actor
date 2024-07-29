@@ -10,7 +10,7 @@ from diff_rl.common.helpers import Losses
 class Consistency(nn.Module):
 
     def __init__(self, state_dim, action_dim, model, 
-                 n_timesteps=100,
+                 n_timesteps=5,
                  loss_type='l2', clip_denoised=True,
                  eps: float = 0.002, D: int = 128) -> None:
         super(Consistency, self).__init__()
@@ -47,15 +47,13 @@ class Consistency(nn.Module):
 
     # Only one predict_consistency
     def loss(self, state, action, z, t1, t2, ema_model=None, weights=torch.tensor(1.0)):
+        # here should use 
         x2 = action + z * t2  # x2: (batch, action_dim), t2: (batch, 1)
         x2 = self.predict_consistency(state, x2, t2)
 
         with torch.no_grad():
             x1 = action + z * t1
-            if ema_model is None:
-                x1 = self.predict_consistency(state, x1, t1)
-            else:
-                x1 = ema_model.predict_consistency(state, x1, t1)
+            x1 = self.predict_consistency(state, x1, t1)
 
         loss = self.loss_fn(x2, x1, weights, take_mean=False)  # prediction, target
         return loss
@@ -70,7 +68,9 @@ class Consistency(nn.Module):
 
         action = self.predict_consistency(state, action, ts[0])
 
-        for t in ts[1:]:
+        # Should look into this part
+        
+        for t in ts[1:]: # 
             # TODO, could use random skip operation here to accerate the sample process
             z = torch.randn_like(action)
             action = action + math.sqrt(t**2 - self.eps**2) * z

@@ -73,14 +73,17 @@ class Consistency_Actor(BasePolicy):
     def consistency_loss(self, itr, iterations, state, action):
 
         N = timesteps_schedule(itr, iterations, initial_timesteps=2, final_timesteps=150) # eqivalent to above
+        # Here could use different method,
         boundaries = kerras_boundaries(7.0, 0.002, N, self.mu.max_T).to(self.device)
         z = th.randn_like(action)
         t = th.randint(0, N - 1, (action.shape[0], 1), device=self.device)
         t_1 = boundaries[t]
         t_2 = boundaries[t + 1]
-        bc_loss = self.mu.loss(state, action, z, t_1, t_2).mean()
+        delta_t = t_2 - t_1 # shape: (batch_size, 1)
+        bc_loss = self.mu.loss(state, action, z, t_1, t_2)
+        mean_bc_loss = (100./delta_t * bc_loss).mean()
 
-        return bc_loss
+        return mean_bc_loss
 
 class TD3Policy(BasePolicy):
 
