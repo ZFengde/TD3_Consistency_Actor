@@ -43,7 +43,7 @@ class Consistency_Actor(BasePolicy):
         
         # here generate actor net for specifying the structure of self.mu
         action_dim = get_action_dim(self.action_space)
-        actor_net = create_mlp(features_dim, action_dim, net_arch, activation_fn, squash_output=True)
+        # actor_net = create_mlp(features_dim, action_dim, net_arch, activation_fn, squash_output=True)
         # self.mu = nn.Sequential(*actor_net)
         model = MLP(state_dim=features_dim, action_dim=action_dim)
         self.mu= Consistency(state_dim=features_dim, action_dim=action_dim, model=model)
@@ -70,7 +70,7 @@ class Consistency_Actor(BasePolicy):
         action = self(observation)
         return action
 
-    def consistency_loss(self, itr, iterations, state, action):
+    def consistency_loss(self, itr, iterations, state, action, target_model):
 
         N = timesteps_schedule(itr, iterations, initial_timesteps=2, final_timesteps=150) # eqivalent to above
         # Here could use different method,
@@ -80,7 +80,8 @@ class Consistency_Actor(BasePolicy):
         t_1 = boundaries[t]
         t_2 = boundaries[t + 1]
         delta_t = t_2 - t_1 # shape: (batch_size, 1)
-        bc_loss = self.mu.loss(state, action, z, t_1, t_2)
+        
+        bc_loss = self.mu.loss(state, action, z, t_1, t_2, target_model=target_model)
         mean_bc_loss = (100./delta_t * bc_loss).mean()
 
         return mean_bc_loss

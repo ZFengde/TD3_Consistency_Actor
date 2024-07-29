@@ -46,14 +46,14 @@ class Consistency(nn.Module):
         return output
 
     # Only one predict_consistency
-    def loss(self, state, action, z, t1, t2, ema_model=None, weights=torch.tensor(1.0)):
+    def loss(self, state, action, z, t1, t2, target_model=None, weights=torch.tensor(1.0)):
         # here should use 
         x2 = action + z * t2  # x2: (batch, action_dim), t2: (batch, 1)
         x2 = self.predict_consistency(state, x2, t2)
 
-        with torch.no_grad():
+        with torch.no_grad(): # this is t-1
             x1 = action + z * t1
-            x1 = self.predict_consistency(state, x1, t1)
+            x1 = target_model.mu.predict_consistency(state, x1, t1)
 
         loss = self.loss_fn(x2, x1, weights, take_mean=False)  # prediction, target
         return loss

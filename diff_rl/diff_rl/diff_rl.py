@@ -147,7 +147,7 @@ class TD3(OffPolicyAlgorithm):
             if self._n_updates % self.policy_delay == 0:
                 sampled_action = self.actor(obs=replay_data.observations)
                 # TODO, add consistency loss
-                bc_loss = self.actor.consistency_loss(iter, gradient_steps, replay_data.observations, replay_data.actions)
+                bc_loss = self.actor.consistency_loss(iter, gradient_steps, replay_data.observations, replay_data.actions, target_model=self.actor_target)
                 q_loss = self.critic.q1_forward(replay_data.observations, sampled_action).mean()
                 actor_loss = bc_loss - q_loss
                 actor_losses.append(actor_loss.item())
